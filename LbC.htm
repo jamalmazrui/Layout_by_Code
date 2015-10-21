@@ -1,0 +1,387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
+<html>
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Windows (vers 25 March 2009), see www.w3.org">
+
+  <title>Layout by Code</title>
+</head>
+
+<body>
+  Version 2.4<br>
+  October 21, 2015<br>
+  Copyright 2006 - 2015 by Jamal Mazrui<br>
+  GNU Lesser General Public License (LGPL)<br>
+  Description<br>
+  Layout by Code (LbC) is an approach to designing graphical user
+  interfaces via specialized routines rather than graphical layout
+  tools. Those tools tend to be visually and mouse oriented, and thus
+  challenging for blind programmers to use reliably and efficiently.
+  The original implementation of LbC is in the programming language
+  called AutoIt, available from<br>
+  <a href="http://AutoItScript.com">http://AutoItScript.com</a>
+
+  <p>The file LbC.au3, included in this distribution, is a function
+  library that may be included in an AutoIt program.<br>
+  Naming Conventions<br>
+  All LbC functions start with the _lbc prefix. The underline character
+  is conventional for user defined functions in AutoIt. For convenient
+  typing, the letters of this prefix are in lower case. For
+  readability, the next part of the function name begins with a capital
+  letter. For example, the _lbcTest function displays a message box for
+  checking the value of a variable or expression.</p>
+
+  <p>LbC global variables and constants begin with a lower case letter
+  indicating the data type, followed by the Lbc prefix. In this case,
+  no underscore is used, and the L is capitalized for readability. The
+  rest of the identifier name also begins with a capital letter. For
+  example, $nLbcHLabelPad is a constant that stores the amount of
+  pixels that horizontally separates a label from its associated
+  control.</p>
+
+  <p>LbC currently supports eight types of AutoIt controls: label,
+  button, check box, radio button, list box, input, edit, and status
+  bar. These controls are created with a function like
+  _lbcCtrlCreateInput. Following AutoIt naming conventions, the word
+  Control is abbreviated CTRL. The control creation functions take
+  eight optional parameters corresponding to the caption, data, left,
+  top, width, height, style, and extended style attributes of the
+  control. Often, one need only specify the caption. Sometimes, the
+  caption and data are specified. If particular values are needed for
+  parameters, the intervening parameters can either be explicitly
+  specified or given a value of -1, indicating that the LbC default
+  should be used. The test.au3 program illustrates the use of these and
+  other LbC functions.<br>
+  Bands and Groups<br>
+  The concepts of group and band are useful for describing a form. A
+  group is a set of related controls with arrow navigation support
+  among them. Generally, a set of radio buttons will constitute a
+  group. Related check boxes could also constitute a group. Another
+  group might include An edit box and related button for picking rather
+  than typing a value.</p>
+
+  <p>A band is a horizontal series of controls within a group. A group
+  contains at least one band, and may contain a vertical series of
+  bands, that is, multiple bands arranged consecutively below each
+  other. Each band may be identified by a unique number that
+  corresponds to its sequential value during the creation process of
+  the form. The first band is numbered 1, the second band 2, and so on.
+  Groups are numbered similarly. For example, group 3 is the third
+  group created, which might contain bands 5 and 6.</p>
+
+  <p>By default, each control in a band has the same coordinate value
+  for its top border--the vertical position in the form. The bottom
+  border may vary depending on whether the control is a single or multi
+  line control, e.g., a list box or multi line edit box. The height of
+  a band is the height of its tallest control.<br>
+  Dialog Units and Spacing<br>
+  LbC spaces controls according to the &quot;Official Guidelines for
+  User Interface Design,&quot; a Microsoft publication based on years
+  of usability research and experience. Much of the information is from
+  the web page<br>
+  <a href=
+  "http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnwue/html/ch14e.asp">
+  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/dnwue/html/ch14e.asp</a></p>
+
+  <p>Spacing between controls varies depending on whether they are
+  related, and if so, whether the relationship is between a label and
+  its associated control. Controls that do not have their own captions
+  have labels instead. A label is positioned to the left of its
+  associated control. It has the &quot;Static&quot; window class and a
+  colon at the end of its text.</p>
+
+  <p>The Microsoft publication mentioned above gives layout guidelines
+  in terms of &quot;dialog units.&quot; By definition, a horizontal
+  dialog unit is one quarter of the average character width of the
+  default system font. A vertical unit is one eigth of the average
+  character height. Thus, an average character is four dialog units
+  wide and eight dialog units high. At the time of this writing, most
+  personal computers seem to use a default system font of either
+  &quot;MS Sansarif&quot; or &quot;Tahoma&quot; and a screen resolution
+  where each dialog unit is two pixels in size. Thus, each character is
+  eight pixels wide and 16 pixels high on average.</p>
+
+  <p>According to the guidelines, three dialog units separate a label
+  and associated control. Four dialog units separate other related
+  controls in the same group. Seven dialog units separate unrelated
+  controls in consecutive groups.</p>
+
+  <p>This LbC spacing applies both horizontally and vertically. For
+  example, the top of a new band of controls will be placed four dialog
+  units down if part of the same group, or seven dialog units down if
+  part of a new group. Note that a band to the right of another band is
+  necessarily part of a different group--because a band is a set of
+  related controls. Thus, two bands arranged horizontally are separated
+  by the group divider spacing of seven dialog units. Since the AutoIt
+  language actually uses pixel coordinates rather than dialog units,
+  LbC converts accordingly.<br>
+  Layout Cursor<br>
+  LbC uses the concept of a layout cursor that points to where the next
+  control created will be placed on the form. The column and row
+  position of this cursor is stored in global variables that LbC
+  adjusts automatically behind the scenes. All LbC global variables, by
+  the way, start with a lower case letter for the data type, followed
+  by Lbc and then the rest of the variable name, e.g., $nLbcRow and
+  $nLbcCol store numeric values for the column and row of the layout
+  cursor.</p>
+
+  <p>Three functions start a new band of controls: _lbcStartBand,
+  _lbcStartVGroup, and _lbcStartHGroup. They take an optional parameter
+  indicating the reference band for alignment. For example,
+  _lbcStartBand(3) starts a new band of controls below the third one.
+  The layout cursor is positioned at the column corresponding to the
+  left border of band 3. Its row is lower than the bottom border of
+  band 3 by the amount of vertical spacing for related controls. When a
+  control is created in the new band, the layout cursor is moved beyond
+  the right border of the control by a standard spacing amount (three
+  dialog units if the control is a label, or four otherwise).</p>
+
+  <p>The function _lbcStartVGroup starts a new group in the vertical
+  direction, whereas _lbcStartHGroup startes one in the horizontal
+  direction. Calling _lbcStartVGroup(3) positions the layout cursor at
+  the same column as _lbcStartBand(3), but at a row further down, since
+  group divider spacing is used (seven dialog units). Calling
+  _lbcStartHGroup(3) instead would position the layout cursor so that
+  its row corresponds to the top border of band 3, and its column is
+  beyond the right border of band 3 by the amount for group divider
+  spacing. When a reference band is not specified as a parameter to
+  these band or group initiation functions, LbC defaults to the current
+  band.<br>
+  Control IDs<br>
+  For flexibility of coding, LbC functions usually accept either
+  strings or numbers as parameters, and respond intelligently. Many
+  functions take a list of control IDs as a parameter, delimited by the
+  vertical bar (|) character. For example, the _lbcCTRLSetWidth
+  function changes the width of one or more controls in the current
+  form. The first parameter may be a numeric ID like 9, or an ID list
+  like &quot;9|10|11&quot; indicating three controls. The second
+  parameter may be either a number like 50 to specify the new width, or
+  a string like &quot;+10&quot; indicating that 10 should be added to
+  the current width of each control in the list.<br>
+  Setting Control Attributes<br>
+  The functions _lbcCtrlSetLeft /Right /Top /Bottom /Width /Height
+  /HCenter /VCenter set the indicated value of the control. HCenter
+  means the horizontal center or midpoint between the left and right
+  values. Similarly, VCenter means the vertical center, or midpoint
+  between the top and bottom values.<br>
+  Getting Control Attributes<br>
+  A set of similarly named functions uses the word Get instead of Set,
+  and compares multiple controls if an ID list is used rather than a
+  single ID. For example, _lbcCtrlGetLeft returns the lowest left value
+  of the controls passed in the ID parameter. _lbcCtrlGetWidth returns
+  the total width between the control border that is furthest to the
+  left and the one that is furthest to the right.</p>
+
+  <p>Several functions return an ID or ID list to be used as a
+  parameter in subsequent function calls. The functions
+  _lbcCtrlGetLeftMost /TopMost /RightMost /BottomMost /Tallest /Widest
+  return the ID of the control with the extreme value of the specified
+  attribute. The functions _lbcBandGetIdList and _lbcGroupGetIdList
+  return the IDs in the group or band specified by number. If no value
+  or a value of -1 is given, then the current group or band nunber is
+  used. _lbcWinGetIdList returns all IDs in the form.</p>
+
+  <p>The functions _lbcCtrlGetIdBySeq /Class /Text return an ID based
+  on the sequence number of the control, its class sequence, or textual
+  data. For example, _lbcCtrlGetIdBySeq(1) returns the ID of the first
+  control in the form; _lbcCtrlGetIdByClass(Edit2&quot;) returns the ID
+  of the second edit box; and _lbcCtrlGetIdByText(&quot;Last
+  name:&quot;) returns the ID of the control with that text, which is
+  probably a control of the Static class serving as a label.<br>
+  Repositioning Controls<br>
+  Some functions change the position of controls within a band.
+  _lbcBandHCenter horizontally centers the controls so that the left
+  and right margins are equal. _lbcBandEvenSpace divides the space so
+  that the same amount is between controls and also in the margins.
+  _lbcBandRespace applies the default LbC spacing rules, separating
+  each control by the label padding, related control padding, or
+  divider group padding as appropriate. These functions may also take a
+  list of band numbers separated by the vertical bar (|) character,
+  applying the spacing operation to each band. _lbcWinRespace respaces
+  every band of the form. This may be needed if, say, the height of a
+  control is changed, thus affecting appropriate placement of the next
+  band of controls.</p>
+
+  <p>The function _lbcCtrlSetState sets the state of one or more
+  controls, e.g., to a hidden or disabled state. The functions
+  _lbcCtrlAddStyle /ExStyle and _lbcCtrlDelStyle /ExStyle add or delete
+  a style or extended style.<br>
+  Miscellaneous Functions<br>
+  Miscellaneous functions include _lbcCtrlGetTextWidth for the precise
+  width of text in a proportional font, _lbcTestCoord for a message box
+  displaying the coordinates of a control, and _lbcSay for speaking
+  text directly via the API of JAWS or Window-Eyes.<br>
+  Mini Dialogs<br>
+  A few functions invoke mini dialogs for obtaining or displaying
+  information. Demonstrating the usefulness of LbC, these are writtin
+  with LbC functions, themselves. The function _lbcPick prompts the
+  user to select from a list of items provided as a parameter, and
+  _lbcChoose prompts the user to select from a set of buttons. The
+  function _lbcHelp displays a read-only, multi-line edit box for
+  presenting a large amount of textual information.<br>
+  Generating Code<br>
+  The many calculations LbC does to assist with layout may noticeably
+  affect the time taken to display a complex form with many controls.
+  Yet, the results of these calculations may subsequently be used with
+  a smaller number of direct AutoIt function calls. The _lbcWinGen
+  function can generate this code. The files test1.au3 and test2.au3
+  illustrate two versions of code for creating the same form: the
+  friendly LbC code before, and the efficient AutoIt code after.<br>
+  Referencing non-AutoIt Forms<br>
+  LbC may operate on windows created with programming languages other
+  than AutoIt. One would still write AutoIt code, but the LbC functions
+  could interrogate or manipulate controls on a form of another
+  application. Only a subset of LbC functions would be applicable,
+  e.g., not those that depend on bands or groups, since these are LbC
+  data structures filled by the LbC commands to create controls, bands,
+  or groups.</p>
+
+  <p>To reference an external form with LbC, use the LbCSwitch
+  function, passing it the window handle of interest (which may be
+  found with native AutoIt functions such as WinGetHandle). Now, LbC
+  functions that use an ID or ID list as a parameter will do so in the
+  context of the external form. For example, the _lbcWinGenCode
+  function may be used to generate AutoIt code that creates a form
+  similar to the referenced one.</p>
+
+  <p>An alphabetized summary of nearly 100 LbC functions is below.
+  Besides the sample code in the test1.au3 file, a good way of learning
+  this library is by searching for a function of interest in the
+  LbC.au3 file, since larger functions often use smaller ones as
+  building blocks.<br>
+  Sample Programs</p>
+
+  <p>The file test1.au3 defines an LbC dialog with various controls,
+  and test2.au3 contains generated, native AutoIt code that produces
+  the same layout of controls. FruitBasket.au3 defines a &quot;fruit
+  basket&quot; program using LbC. Batch files to compile 32 and 64 bit
+  executable versions, FruitBasket.exe and FruitBasket64.exe, are
+  CompileFruitBasket.bat and CompileFruitBasket64.bat. More information
+  on fruit basket programs, implemented in many languages, is available
+  at<br>
+  www.FruitBasketDemos.org</p>
+
+  <p><br>
+  Development Notes<br>
+  To support the NVDA screen reader, the file
+  nvdaControllerClient32.dll should be placed in the same directory as
+  the AutoIt program that produces speech messages.</p>
+
+  <p>I welcome feedback and suggestions for improving Layout by Code. I
+  will try to assist in porting it to other programming languages.</p>
+
+  <p>Jamal Mazrui<br>
+  Function Summary<br>
+  _lbcBandEvenHeight = Set height of controls to tallest in band<br>
+  _lbcBandEvenSpace = Set same spacing between controls and in margins
+  of band<br>
+  _lbcBandGetGroup = Get group of band<br>
+  _lbcBandGetIdList = Get Ids in band<br>
+  _lbcBandHCenter = Horizontally center band, making left and right
+  margins equal<br>
+  _lbcBandLJustify = Left justify controls in band<br>
+  _lbcBandReSpace = Set default LbC spacing for controls in band<br>
+  _lbcBandRJustify = Right justify controls in band<br>
+  _lbcBandSetHeight = Set height of controls in band<br>
+  _lbcChoose = Prompt user to choose from set of buttons<br>
+  _lbcClassGetIdList = Get Ids of class<br>
+  _lbcCreate = Create parent form for child controls<br>
+  _lbcCtrlAddExStyle = Ad extended style to control<br>
+  _lbcCtrlAddId = Add Ids from second ID list to first one<br>
+  _lbcCtrlAddStyle = Add style to control<br>
+  _lbcCtrlCreateButton = Create push button<br>
+  _lbcCtrlCreateCheckBox = Create check box<br>
+  _lbcCtrlCreateEdit = Create multi-line edit box<br>
+  _lbcCtrlCreateInput = Create single-line input box<br>
+  _lbcCtrlCreateLabel = Create label<br>
+  _lbcCtrlCreateList = Create list box<br>
+  _lbcCtrlCreateRadio = Create radio button<br>
+  _lbcCtrlCreateStatusBar = Create status bar<br>
+  _lbcCtrlDelExStyle = Delete extended style of control<br>
+  _lbcCtrlDelId = Delete IDs in second ID list from first one<br>
+  _lbcCtrlDelStyle = Delete style of control<br>
+  _lbcCtrlGetBand = Get band of control<br>
+  _lbcCtrlGetBorders = Get array of left, top, right, and bottom
+  borders of control<br>
+  _lbcCtrlGetBottom = Get bottom border of control<br>
+  _lbcCtrlGetBottommost = Get ID of bottom-most control<br>
+  _lbcCtrlGetClass = Get class of control<br>
+  _lbcCtrlGetExStyle = Get extended style of control<br>
+  _lbcCtrlGetFontName = Get font name of text in control<br>
+  _lbcCtrlGetGroup = Get group of control<br>
+  _lbcCtrlGetHCenter = Get horizontal center of control, mid-point
+  between left and right borders<br>
+  _lbcCtrlGetHeight = Get height of control<br>
+  _lbcCtrlGetIdByClass = Get ID by class of control<br>
+  _lbcCtrlGetIdByHandle = Get ID by handle of control<br>
+  _lbcCtrlGetIdBySeq = Get ID by sequence of control in form<br>
+  _lbcCtrlGetIdByText = Get ID by text of control<br>
+  _lbcCtrlGetLeft = Get left border of control<br>
+  _lbcCtrlGetLeftmost = Get ID of left-most control<br>
+  _lbcCtrlGetMargins = Get array of left, top, right, and bottom
+  margins of control<br>
+  _lbcCtrlGetNarrowest = Get ID of narrowest control<br>
+  _lbcCtrlGetRight = Get right border of control<br>
+  _lbcCtrlGetRightmost = Get ID of right-most control<br>
+  _lbcCtrlGetShortest = Get ID of shortest control<br>
+  _lbcCtrlGetStyle = Get style of control<br>
+  _lbcCtrlGetTallest = Get ID of tallest control<br>
+  _lbcCtrlGetText = Get Text of control<br>
+  _lbcCtrlGetTextHeight = Get height of text in control<br>
+  _lbcCtrlGetTextWidest = Get text width of control with widest
+  text<br>
+  _lbcCtrlGetTextWidth = Get width of text in control<br>
+  _lbcCtrlGetTop = Get top border of control<br>
+  _lbcCtrlGetTopmost = Get ID of top-most control<br>
+  _lbcCtrlGetVCenter = Get vertical center of control, mid-point
+  between top and bottom borders<br>
+  _lbcCtrlGetWidest = Get ID of widest control<br>
+  _lbcCtrlGetWidth = Get width of control<br>
+  _lbcCtrlSetBottom = Set bottom border of control<br>
+  _lbcCtrlSetData = Set text or other data of control<br>
+  _lbcCtrlSetHCenter = Set horizontal center of control, mid-point
+  between left and right borders<br>
+  _lbcCtrlSetHeight = Set height of control<br>
+  _lbcCtrlSetLeft = Set left border of control<br>
+  _lbcCtrlSetRight = Set right border of control<br>
+  _lbcCtrlSetState = Set state of control<br>
+  _lbcCtrlSetTop = Set top of control<br>
+  _lbcCtrlSetVCenter = Set vertical center of control, mid-point
+  between top and bottom borders<br>
+  _lbcCtrlSetWidth = Set width of control<br>
+  _lbcDelete = Delete form<br>
+  _lbcDesktopGetClientHeight = Get height of Windows desktop, not
+  including taskbar<br>
+  _lbcGroupGetBandList = Get bands of group<br>
+  _lbcGroupGetIdList = Get IDs of group<br>
+  _lbcHelp = Present user with read-only, multi-line edit box of
+  information<br>
+  _lbcPick = Prompt user to pick item from list<br>
+  _lbcSay = Speak a string via the API of JAWS or Window-Eyes<br>
+  _lbcSetCol = Set column of layout cursor<br>
+  _lbcSetRow = Set row of layout cursor<br>
+  _lbcShow = Show form<br>
+  _lbcStartBand = Start new band of controls<br>
+  _lbcStartHGroup = Start new horizontal group of controls<br>
+  _lbcStartVGroup = Start new vertical group of controls<br>
+  _lbcStatusBarGetHandle = Get handle of status bar<br>
+  _lbcStatusBarGetText = Get text of status bar<br>
+  _lbcStatusBarResize = Resize status bar<br>
+  _lbcStatusBarSetText = Set text of status bar<br>
+  _lbcSwitch = Switch reference to another form<br>
+  _lbcTest = Display simple message box<br>
+  _lbcTestCoord = Display message box with coordinates of control<br>
+  _lbcU2X = Convert horizontal dialog units to pixels<br>
+  _lbcU2Y = Convert vertical dialog units to pixels<br>
+  _lbcWinGenCode = Generate native AutoIt code to produce a form
+  designed with LbC<br>
+  _lbcWinGetBandList = Get bands of form<br>
+  _lbcWinGetClassList = Get classes of form<br>
+  _lbcWinGetExStyle = Get extended style of form<br>
+  _lbcWinGetHandle = Get handle of form<br>
+  _lbcWinGetIdList = Get IDs of form<br>
+  _lbcWinGetStyle = Get style of form<br>
+  _lbcWinReSpace = Set default LbC spacing for form</p>
+</body>
+</html>
